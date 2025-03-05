@@ -52,10 +52,14 @@ pipeline {
         }
 
         stage('Coletando o nome de Cluster') {
+            steps {
+                script {
+                    def outputs_tf = sh(script: "terraform output -raw aws-eks-cluster-name", returnStdout: true).trim()
+                    env.TF_CLUSTER_NAME = outputs_tf
+                    echo "Cluster Name: ${env.TF_CLUSTER_NAME}"
+                }
+            }
 
-            def outputs_tf = sh(script: "terraform output -raw aws-eks-cluster-name", returnStdout: true).trim()
-            env.TF_CLUSTER_NAME = outputs_tf
-            echo "Cluster Name: ${env.TF_CLUSTER_NAME}"
 
         }
 
