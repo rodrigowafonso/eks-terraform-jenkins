@@ -30,11 +30,31 @@ pipeline {
             steps {
                 script {
                     dir('terraform') {
-                        script {
-                            sh 'terraform fmt'
-                            sh 'terraform validate'
-                        }
-                        
+                        sh 'terraform fmt'
+                        sh 'terraform validate'
+                    }
+                }
+            }
+
+        }
+
+        stage('Provisionando a Infraestrutura') {
+            steps {
+                script {
+                    dir('terraform') {
+                        sh 'terraform plan'
+                    }
+                    input(message: "Approve?", ok: "proceed")
+
+                }
+            }
+        }
+
+        stage('Create/Destroy Cluster EKS') {
+            steps {
+                script {
+                    dir('terraform') {
+                        sh 'terraform $action --auto-approve'
                     }
                 }
             }
