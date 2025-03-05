@@ -26,5 +26,20 @@ pipeline {
             }
         }
 
+        stage('Terraform Format e Validate') {
+            steps {
+                script {
+                    dir('terraform') {
+                        script {
+                            sh 'terraform fmt'
+                            sh 'terraform validade'
+                        }
+                        
+                    }
+                }
+            }
+
+        }
+
     }
 }
