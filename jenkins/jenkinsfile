@@ -32,7 +32,7 @@ pipeline {
                     dir('terraform') {
                         script {
                             sh 'terraform fmt'
-                            sh 'terraform validade'
+                            sh 'terraform validate'
                         }
                         
                     }
