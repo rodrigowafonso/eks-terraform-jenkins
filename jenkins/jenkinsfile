@@ -82,5 +82,17 @@ pipeline {
             }
         }
 
+        stage('Deploy dos Manifestos no Kubernetes') {
+            steps {
+                script {
+                    sh 'kubectl apply -f ./manifests/deployment.yml'
+                    sh 'kubectl apply -f ./manifests/service.yml'
+                    sh 'kubectl get pods'
+                    sh 'kubectl get services'
+                }
+            }
+
+        }
+
     }
 }
