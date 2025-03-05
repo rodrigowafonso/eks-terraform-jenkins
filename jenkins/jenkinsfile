@@ -4,6 +4,7 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION = credentials('AWS_REGION')
+        TF_CLUSTER_NAME = ""
     }
 
     stages {
@@ -50,15 +51,31 @@ pipeline {
             }
         }
 
-        stage('Create/Destroy Cluster EKS') {
+        stage('Coletando o nome de Cluster') {
+
+            def outputs_tf = sh(script: "terraform output -raw aws-eks-cluster-name", returnStdout: true).trim()
+            env.TF_CLUSTER_NAME = outputs_tf
+            echo "Cluster Name: ${env.TF_CLUSTER_NAME}"
+
+        }
+
+        // stage('Create/Destroy Cluster EKS') {
+        //     steps {
+        //         script {
+        //             dir('terraform') {
+        //                 sh 'terraform $action --auto-approve'
+        //             }
+        //         }
+        //     }
+
+        // }
+
+        stage('Configurando o Kubectl Config') {
             steps {
                 script {
-                    dir('terraform') {
-                        sh 'terraform $action --auto-approve'
-                    }
+                    sh 'echo aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${env.TF_CLUSTER_NAME}"'
                 }
             }
-
         }
 
     }
