@@ -4,7 +4,6 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION = credentials('AWS_REGION')
-        TF_CLUSTER_NAME = ""
     }
 
     stages {
@@ -66,8 +65,8 @@ pipeline {
             steps {
                 script {
                     def outputs_tf = sh(script: 'terraform output -raw aws-eks-cluster-name', returnStdout: true).trim()
-                    //env.TF_CLUSTER_NAME = outputs_tf
-                    echo "Cluster Name: ${outputs_tf}"
+                    def env.TF_CLUSTER_NAME = outputs_tf.split('=')[1].replaceAll('"', '').trim()
+                    println "Cluster Name: ${env.TF_CLUSTER_NAME}"
                 }
             }
 
@@ -76,8 +75,8 @@ pipeline {
         stage('Configurando o Kubectl Config') {
             steps {
                 script {
-                    //sh 'echo aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${outputs_tf}"'
-                    sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${outputs_tf}"'
+                    //sh 'echo aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${env.TF_CLUSTER_NAME}"'
+                    sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${env.TF_CLUSTER_NAME}"'
                 }
             }
         }
