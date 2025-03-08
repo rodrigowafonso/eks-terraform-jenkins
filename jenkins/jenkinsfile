@@ -6,6 +6,10 @@ pipeline {
         AWS_DEFAULT_REGION = credentials('AWS_REGION')
     }
 
+    parameters {
+        choice(name: 'CREATE_OR_DESTROY', choices: ['Create', 'Destroy'], description: 'O que você gostaria de Criar ou Destruir o Cluster Kubernetes? ')
+    }
+
     stages {
 
         stage('Checkout Código Github SCM') {
@@ -48,35 +52,70 @@ pipeline {
 
                 }
             }
+            when {
+                expression {
+                    params.CREATE_OR_DESTROY == 'Create' || params.CREATE_OR_DESTROY == 'Destroy' 
+                }
+            }
         }
 
-        stage('Create/Destroy Cluster EKS') {
+        stage('Create Cluster EKS') {
             steps {
                 script {
                     dir('terraform') {
-                        sh 'terraform $action --auto-approve'
+                        //sh 'terraform apply -no-color --auto-approve'
+                        sh 'echo Executando o terraform apply'
                     }
                 }
             }
+            when {
+                expression {
+                    params.CREATE_OR_DESTROY == 'Create'
+                }
+            }
+        }
 
+        stage('Destroy Cluster EKS') {
+            steps {
+                script {
+                    dir('terraform') {
+                        sh 'terraform destroy -no-color --auto-approve'
+                    }
+                }
+            }
+            when {
+                expression {
+                    params.CREATE_OR_DESTROY == 'Destroy'
+                }
+            }
         }
 
         stage('Coletando o nome de Cluster') {
             steps {
                 script {
-                    def outputs_tf = sh(script: 'terraform output -raw aws-eks-cluster-name', returnStdout: true).trim()
-                    def TF_VAR_CLUSTER_NAME = outputs_tf.split('=')[1].replaceAll('"', '').trim()
-                    println "Cluster Name: ${TF_VAR_CLUSTER_NAME}"
+                    // def outputs_tf = sh(script: 'terraform output -raw aws-eks-cluster-name', returnStdout: true).trim()
+                    // def TF_VAR_CLUSTER_NAME = outputs_tf.split('=')[1].replaceAll('"', '').trim()
+                    // println "Cluster Name: ${TF_VAR_CLUSTER_NAME}"
+                    sh 'echo executando a coleta do nome do cluster'
                 }
             }
-
+            when {
+                expression {
+                    params.CREATE_OR_DESTROY == 'Create'
+                }
+            }
         }
 
         stage('Configurando o Kubectl Config') {
             steps {
                 script {
-                    //sh 'echo aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${env.TF_CLUSTER_NAME}"'
                     sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${TF_VAR_CLUSTER_NAME}"'
+                    sh 'Configurando o Kubeconfig'
+                }
+            }
+            when {
+                expression {
+                    params.CREATE_OR_DESTROY == 'Create'
                 }
             }
         }
@@ -84,13 +123,18 @@ pipeline {
         stage('Deploy dos Manifestos no Kubernetes') {
             steps {
                 script {
-                    sh 'kubectl apply -f ./manifests/deployment.yml'
-                    sh 'kubectl apply -f ./manifests/service.yml'
-                    sh 'kubectl get pods'
-                    sh 'kubectl get services'
+                    // sh 'kubectl apply -f ./manifests/deployment.yml'
+                    // sh 'kubectl apply -f ./manifests/service.yml'
+                    // sh 'kubectl get pods'
+                    // sh 'kubectl get services'
+                    sh 'Executando os manifestos da aplicação'
                 }
             }
-
+            when {
+                expression {
+                    params.CREATE_OR_DESTROY == 'Create'
+                }
+            }
         }
 
     }
