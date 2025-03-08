@@ -109,8 +109,8 @@ pipeline {
         stage('Configurando o Kubectl Config') {
             steps {
                 script {
-                    sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${TF_VAR_CLUSTER_NAME}"'
-                    sh 'Configurando o Kubeconfig'
+                    // sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${TF_VAR_CLUSTER_NAME}"'
+                    sh 'echo Configurando o Kubeconfig'
                 }
             }
             when {
