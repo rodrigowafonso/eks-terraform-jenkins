@@ -63,8 +63,10 @@ pipeline {
             steps {
                 script {
                     dir('terraform') {
-                        //sh 'terraform apply -no-color --auto-approve'
                         sh 'echo Executando o terraform apply'
+                        def outputs_tf = sh 'terraform output -raw aws_eks_cluster_name'
+                        sh 'echo Nome do Cluster é: "${outputs_tf}"'
+                        //sh 'terraform apply -no-color --auto-approve'
                     }
                 }
             }
@@ -93,10 +95,10 @@ pipeline {
         stage('Coletando o nome de Cluster') {
             steps {
                 script {
+                    sh 'echo executando a coleta do nome do cluster'
                     // def outputs_tf = sh(script: 'terraform output -raw aws-eks-cluster-name', returnStdout: true).trim()
                     // def TF_VAR_CLUSTER_NAME = outputs_tf.split('=')[1].replaceAll('"', '').trim()
                     // println "Cluster Name: ${TF_VAR_CLUSTER_NAME}"
-                    sh 'echo executando a coleta do nome do cluster'
                 }
             }
             when {
