@@ -64,9 +64,9 @@ pipeline {
                 script {
                     dir('terraform') {
                         sh 'echo Executando o terraform apply'
+                        sh 'terraform apply -no-color --auto-approve'
                         def outputs_tf = sh 'terraform output -raw aws_eks_cluster_name'
                         sh 'echo Nome do Cluster é: "${outputs_tf}"'
-                        //sh 'terraform apply -no-color --auto-approve'
                     }
                 }
             }
@@ -111,7 +111,8 @@ pipeline {
         stage('Configurando o Kubectl Config') {
             steps {
                 script {
-                    // sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${TF_VAR_CLUSTER_NAME}"'
+                    def outputs_tf = sh 'terraform output -raw aws_eks_cluster_name'
+                    sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${outputs_tf}"'
                     sh 'echo Configurando o Kubeconfig'
                 }
             }
@@ -125,11 +126,11 @@ pipeline {
         stage('Deploy dos Manifestos no Kubernetes') {
             steps {
                 script {
-                    // sh 'kubectl apply -f ./manifests/deployment.yml'
-                    // sh 'kubectl apply -f ./manifests/service.yml'
-                    // sh 'kubectl get pods'
-                    // sh 'kubectl get services'
                     sh 'echo Executando os manifestos da aplicação'
+                    sh 'kubectl apply -f ./manifests/deployment.yml'
+                    sh 'kubectl apply -f ./manifests/service.yml'
+                    sh 'kubectl get pods'
+                    sh 'kubectl get services'
                 }
             }
             when {
