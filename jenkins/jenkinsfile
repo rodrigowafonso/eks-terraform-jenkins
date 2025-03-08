@@ -65,8 +65,6 @@ pipeline {
                     dir('terraform') {
                         sh 'echo Executando o terraform apply'
                         sh 'terraform apply -no-color --auto-approve'
-                        def outputs_tf = sh 'terraform output -raw aws_eks_cluster_name'
-                        sh 'echo Nome do Cluster é: "${outputs_tf}"'
                     }
                 }
             }
@@ -96,9 +94,9 @@ pipeline {
             steps {
                 script {
                     sh 'echo executando a coleta do nome do cluster'
-                    // def outputs_tf = sh(script: 'terraform output -raw aws-eks-cluster-name', returnStdout: true).trim()
-                    // def TF_VAR_CLUSTER_NAME = outputs_tf.split('=')[1].replaceAll('"', '').trim()
-                    // println "Cluster Name: ${TF_VAR_CLUSTER_NAME}"
+                    def outputs_tf = sh(script: 'terraform output -raw aws_eks_cluster_name', returnStdout: true).trim()
+                    def TF_VAR_CLUSTER_NAME = outputs_tf.split('=')[1].replaceAll('"', '').trim()
+                    println "Cluster Name: ${TF_VAR_CLUSTER_NAME}"
                 }
             }
             when {
@@ -111,9 +109,8 @@ pipeline {
         stage('Configurando o Kubectl Config') {
             steps {
                 script {
-                    def outputs_tf = sh 'terraform output -raw aws_eks_cluster_name'
-                    sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${outputs_tf}"'
                     sh 'echo Configurando o Kubeconfig'
+                    sh 'aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "$(terraform output -raw aws_eks_cluster_name)"'
                 }
             }
             when {
